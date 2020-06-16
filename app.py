@@ -1,12 +1,33 @@
 from flask import Flask
 from flask_restful import Resource, Api, request
-from models import Pessoas, Atividades
+from models import Pessoas, Atividades, Usuarios
+from flask_httpauth import HTTPBasicAuth
 
+auth = HTTPBasicAuth()  #Utilizado para autenticação
 app = Flask(__name__)
 api = Api(app)
 
+# USUARIOS = {'giu': '321', 'cabral': '321'}
+
+# @auth.verify_password  #indica que esta é a função verificadora de senha
+# def verificacao(login, senha):
+#     print('validando usuário')
+#     print(USUARIOS.get(login) == senha)
+#     if not (login, senha):
+#         return False
+#     return USUARIOS.get(login) == senha
+
+
+@auth.verify_password  #indica que esta é a função verificadora de senha
+def verificacao(login, senha):
+    print('validando usuário')
+    if not (login, senha):
+        return False
+    return Usuarios.query.filter_by(login=login, senha=senha).first()
+
 
 class Pessoa(Resource):
+    @auth.login_required
     def get(self, nome):
         pessoa = Pessoas.query.filter_by(nome=nome).first()
         try:
@@ -42,6 +63,7 @@ class Pessoa(Resource):
 
 
 class ListaPessoas(Resource):
+    @auth.login_required
     def get(self):
         pessoas = Pessoas.query.all()
         response = [{
@@ -63,7 +85,7 @@ class ListaPessoas(Resource):
         return response
 
 
-class ListaAtificades(Resource):
+class ListaAtividades(Resource):
     def get(self):
         atividades = Atividades.query.all()
         response = [{
@@ -86,9 +108,25 @@ class ListaAtificades(Resource):
         return response
 
 
+class AtividadesPessoa(Resource):
+    def get(self, nome):
+        pessoa = Pessoas.query.filter_by(nome=nome).first()
+        atividades_pessoa = Atividades.query.filter_by(pessoa_id=pessoa.id)
+        try:
+            response = [{
+                'id': i.id,
+                'pessoa': i.pessoa.nome,
+                'nome': i.nome
+            } for i in atividades_pessoa]
+        except AttributeError:
+            response = {'status': 'error', 'mensagem': 'Pessoa não encontrada'}
+        return response
+
+
 api.add_resource(Pessoa, '/pessoa/<string:nome>/')
 api.add_resource(ListaPessoas, '/pessoa/')
-api.add_resource(ListaAtificades, '/atividades/')
+api.add_resource(ListaAtividades, '/atividades/')
+# api.add_resource(AtividadesPessoa, '/atividades/<string:pessoa>/')
 
 if __name__ == '__main__':
     app.run(debug=True)

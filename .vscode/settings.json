@@ -1,0 +1,14 @@
+{
+    "python.pythonPath": "E:\\PYTHON\\FLASK_VIRTUAL\\dev_flask\\Scripts\\python.exe",
+    "python.formatting.provider": "yapf",
+    "python.testing.unittestArgs": [
+        "-v",
+        "-s",
+        ".",
+        "-p",
+        "*test.py"
+    ],
+    "python.testing.pytestEnabled": false,
+    "python.testing.nosetestsEnabled": false,
+    "python.testing.unittestEnabled": true
+}
